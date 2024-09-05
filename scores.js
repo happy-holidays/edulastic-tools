@@ -20,8 +20,9 @@ function main() {
   let test_id = matches[3];
   let request_url = `https://app.edulastic.com/api/test-activity/${test_id}/report?groupId=${group_id}`;
   
-  let token_list = JSON.parse(localStorage.getItem("tokens"));
-  let token = localStorage.getItem(token_list ? token_list[0] : null);
+  // Retrieve tokens from localStorage or sessionStorage
+  let token_list = JSON.parse(localStorage.getItem("tokens") || sessionStorage.getItem("tokens"));
+  let token = localStorage.getItem(token_list ? token_list[0] : null) || sessionStorage.getItem(token_list ? token_list[0] : null);
 
   if (!token) {
     alert("Error: Unable to retrieve authorization token.");
@@ -29,7 +30,7 @@ function main() {
   }
 
   let headers = [
-    ["Authorization", token]
+    ["Authorization", `Bearer ${token}`]  // Add 'Bearer ' if required by the API
   ];
 
   http_get(request_url, function() {
@@ -37,6 +38,9 @@ function main() {
       alert(`Error: Status code ${this.status} received while trying to fetch the API.`);
       return;
     }
+
+    // Log the response to inspect its structure
+    console.log("API Response:", this.responseText);
 
     let report;
     try {
@@ -46,6 +50,7 @@ function main() {
       return;
     }
 
+    // Adjust these fields if the structure has changed
     let wrong = report?.result?.testActivity?.wrong || 0;
     let total = report?.result?.questionActivities?.length || 0;
 
